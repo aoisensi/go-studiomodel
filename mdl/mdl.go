@@ -6,8 +6,10 @@ type MDL struct {
 	Header *Header
 	Name   string
 
-	Textures  []*Texture
-	BodyParts []*BodyPart
+	Textures    []*Texture
+	TextureDirs []string
+	Skins       [][]*Texture
+	BodyParts   []*BodyPart
 }
 
 type Header struct {
@@ -105,6 +107,7 @@ func (d *Decoder) decodeMDL() (*MDL, error) {
 	}
 	d.mdl.Header = header
 
+	// Textures
 	d.mdl.Name = nameString(header.Name)
 	err = d.ppush(
 		d.mdl.Header.TextureOffset,
@@ -114,6 +117,31 @@ func (d *Decoder) decodeMDL() (*MDL, error) {
 		return nil, err
 	}
 
+	// TextureDirs
+	d.mdl.TextureDirs = d.readNames(d.mdl.Header.TextureDirOffset+0x80, d.mdl.Header.TextureDirCount)
+
+	// Skins
+	d.mdl.Skins = make([][]*Texture, header.SkinFamilyCount)
+	for i := range d.mdl.Skins {
+		d.mdl.Skins[i] = make([]*Texture, header.SkinReferenceCount)
+	}
+	err = d.ppush(header.SkinReferenceIndex, func() error {
+		for i, ref := range d.mdl.Skins {
+			for j := range ref {
+				var id int16
+				if err := d.read(&id); err != nil {
+					return err
+				}
+				d.mdl.Skins[i][j] = d.mdl.Textures[id]
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// BodyParts
 	err = d.ppush(
 		d.mdl.Header.BodyPartOffset,
 		func() error { return d.decodeBodyParts(d.mdl) },

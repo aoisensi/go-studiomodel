@@ -61,6 +61,28 @@ func (d *Decoder) readName(p int32) string {
 	}
 }
 
+func (d *Decoder) readNames(p int32, count int32) []string {
+	o, _ := d.r.Seek(0, io.SeekCurrent)
+	d.r.Seek(int64(p), io.SeekCurrent)
+	strs := make([]string, count)
+	for i := range strs {
+		str := make([]rune, 0, 256)
+		for {
+			c, _, err := d.r.ReadRune()
+			if err != nil {
+				panic(err)
+			}
+			if c == 0 {
+				strs[i] = string(str)
+				break
+			}
+			str = append(str, c)
+		}
+	}
+	d.r.Seek(o, io.SeekStart)
+	return strs
+}
+
 func nameString(name [64]byte) string {
 	return strings.TrimRight(string(name[:]), "\x00")
 }
