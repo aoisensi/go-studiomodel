@@ -35,7 +35,7 @@ func (d *Decoder) decodeModel(bp *BodyPart) error {
 		model.Name = nameString(model.Header.Name)
 
 		err := d.ppush(
-			header.MeshIndex,
+			header.MeshIndex-148,
 			func() error { return d.decodeMesh(model) },
 		)
 		if err != nil {

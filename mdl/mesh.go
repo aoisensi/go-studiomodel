@@ -15,7 +15,7 @@ type MeshHeader struct {
 	MaterialParam int32
 	MeshID        int32
 	Center        [3]float32
-	_             [3]int32 // mstudio_meshvertexdata_t
+	_             [9]int32 // mstudio_meshvertexdata_t
 	_             [8]int32
 }
 
