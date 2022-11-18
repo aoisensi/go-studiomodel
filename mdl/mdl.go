@@ -118,7 +118,21 @@ func (d *Decoder) decodeMDL() (*MDL, error) {
 	}
 
 	// TextureDirs
-	d.mdl.TextureDirs = d.readNames(d.mdl.Header.TextureDirOffset+0x80, d.mdl.Header.TextureDirCount)
+	d.mdl.TextureDirs = make([]string, d.mdl.Header.TextureDirCount)
+	if err := d.ppush(0, func() error {
+		ps := make([]int32, d.mdl.Header.TextureDirCount)
+		if err := d.ppush(d.mdl.Header.TextureDirOffset, func() error {
+			return d.read(ps)
+		}); err != nil {
+			return err
+		}
+		for i, p := range ps {
+			d.mdl.TextureDirs[i] = d.readName(p)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
 
 	// Skins
 	d.mdl.Skins = make([][]*Texture, header.SkinFamilyCount)
