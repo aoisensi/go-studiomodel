@@ -8,8 +8,9 @@ import (
 type VVD struct {
 	Header   *Header
 	Fixups   []*Fixup
-	Vertexes []*Vertex
+	Vertexes []*Vertex // usually use LODsData
 	Tangents [][4]float32
+	LODsData [][]*Vertex
 }
 
 func (d *Decoder) decodeVVD() (*VVD, error) {
@@ -49,6 +50,25 @@ func (d *Decoder) decodeVVD() (*VVD, error) {
 	err = binary.Read(d.r, binary.LittleEndian, &vvd.Tangents)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(vvd.Fixups) > 0 {
+		vvd.LODsData = make([][]*Vertex, vvd.Header.NumLODs)
+		for lodID := 0; lodID < int(vvd.Header.NumLODs); lodID++ {
+			offset := 0
+			data := make([]*Vertex, vvd.Header.NumLODVertexes[lodID])
+			for _, fixup := range vvd.Fixups {
+				if fixup.LOD >= int32(lodID) {
+					idx := int(fixup.SourceVertexID)
+					cnt := int(fixup.NumVertexes)
+					copy(data[offset:offset+cnt], vvd.Vertexes[idx:idx+cnt])
+					offset += cnt
+				}
+			}
+			vvd.LODsData[lodID] = data
+		}
+	} else {
+		vvd.LODsData = [][]*Vertex{vvd.Vertexes}
 	}
 	return vvd, nil
 }
