@@ -20,11 +20,8 @@ type ModelHeader struct {
 	NumEyeballs     int32
 	EyeballIndex    int32
 	_               [2]int32 // mstudio_modelvertexdata_t
-	_               [4]int32
+	_               [8]int32
 } // 148 0x9c bytes
-
-type ModelVertexData struct {
-}
 
 func (d *Decoder) decodeModel(bp *BodyPart) error {
 	bp.Models = make([]*Model, bp.Header.NumModels)
