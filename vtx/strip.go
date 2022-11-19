@@ -21,7 +21,7 @@ type StripHeader struct {
 }
 
 func (d *Decoder) decodeStrips(sg *StripGroup) error {
-	d.r.Seek(int64(sg.Header.VertOffset), io.SeekCurrent)
+	d.r.Seek(int64(sg.Header.StripOffset), io.SeekCurrent)
 	sg.Strips = make([]*Strip, sg.Header.NumStrips)
 	for i := range sg.Strips {
 		header := new(StripHeader)
